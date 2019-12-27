@@ -1,6 +1,7 @@
 const { buildSchema } = require("graphql");
 
-module.exports = buildSchema`
+module.exports = buildSchema(`
+
 type Event{
     _id: ID!
     title:String!
@@ -42,4 +43,4 @@ type RootQuery{
     query:RootQuery
     mutation:RootMutation
   }
-`;
+`);
