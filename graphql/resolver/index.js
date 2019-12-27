@@ -41,59 +41,48 @@ module.exports = {
       };
     });
   },
-  createEvent: args => {
-    const event = new Event({
-      title: args.eventInput.title,
-      description: args.eventInput.description,
-      price: +args.eventInput.price,
-      date: new Date().toISOString(),
-      creator: TEMP_USER_ID
-    });
-    let createdEvent;
-    return event
-      .save()
-      .then(result => {
-        createdEvent = {
-          ...result._doc,
-          creator: user.bind(this, result._doc.creator)
-        };
-        return User.findById(TEMP_USER_ID);
-      })
-      .then(user => {
-        if (!user) {
-          throw new Error("User  not found");
-        }
+  createEvent: async args => {
+    try {
+      const event = new Event({
+        title: args.eventInput.title,
+        description: args.eventInput.description,
+        price: +args.eventInput.price,
+        date: new Date().toISOString(),
+        creator: TEMP_USER_ID
+      });
+      const userObject = await User.findById(TEMP_USER_ID);
+      if (!userObject) {
+        throw new Error("403 User not found!");
+      }
 
-        user.createdEvents.push(event);
-        return user.save();
-      })
-      .then(result => {
-        return createdEvent;
-      })
-      .catch(err => {
-        throw err;
-      });
+      let createdEvent;
+      let eventCreationObject = await event.save();
+      eventCreationObject = {
+        ...eventCreationObject._doc,
+        creator: user.bind(this, eventCreationObject._doc.creator)
+      };
+
+      userObject.createdEvents.push(event);
+      userObject.save();
+      return eventCreationObject;
+    } catch (err) {
+      throw err;
+    }
   },
-  createUser: args => {
-    return bcrypt
-      .hash(args.userInput.password, 12)
-      .then(hashedPassword => {
-        console.log(hashedPassword);
-        const user = new User({
-          email: args.userInput.email,
-          password: hashedPassword
-        });
-        return user
-          .save()
-          .then(result => {
-            return { ...result._doc, password: null };
-          })
-          .catch(err => {
-            throw err;
-          });
-      })
-      .catch(err => {
-        throw err;
+  createUser: async args => {
+    try {
+      const hashedPassword = await bcrypt.hash(args.userInput.password, 12);
+
+      const newUserObject = new User({
+        email: args.userInput.email,
+        password: hashedPassword
       });
+
+      const saveNewUserObject = await newUserObject.save();
+      console.log(saveNewUserObject);
+      return { ...saveNewUserObject._doc, password: null };
+    } catch (err) {
+      throw err;
+    }
   }
 };
