@@ -34,6 +34,7 @@ module.exports = {
       .populate("creator")
       .then(events => {
         return events.map(event => {
+          console.log(event);
           return {
             _id: event.id,
             ...event._doc,
@@ -52,7 +53,7 @@ module.exports = {
       description: args.eventInput.description,
       price: +args.eventInput.price,
       date: new Date().toISOString(),
-      creator: "5e041c26a8aa969b34d7c37a"
+      creator: "5e0660153f2c9239e44106d7"
     });
     let createdEvent;
     return event
@@ -62,7 +63,7 @@ module.exports = {
           ...result._doc,
           creator: user.bind(this, result._doc.creator)
         };
-        return User.findById("5e041c26a8aa969b34d7c37a");
+        return User.findById("5e0660153f2c9239e44106d7");
       })
       .then(user => {
         if (!user) {
