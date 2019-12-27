@@ -3,16 +3,41 @@ const bodyParser = require("body-parser");
 const graphQLHttp = require("express-graphql");
 const { buildSchema } = require("graphql");
 const mongoose = require("mongoose");
-const bcrypt = require("bcryptjs");
 const Event = require("./models/event");
 const User = require("./models/user");
 const app = express();
 const PORT = 3000;
 const dev_db_url =
   process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/graphQLProject";
-const events = [];
+//const events = [];
 
 app.use(bodyParser.json());
+
+const events = eventIds => {
+  return Event.find({ _id: { $in: eventIds } }).then(events => {
+    return events.map(event => {
+      return {
+        ...event._doc,
+        _id: event.id,
+        creator: user.bind(this, event.creator)
+      };
+    });
+  });
+};
+
+const user = userId => {
+  return User.findById(userId)
+    .then(user => {
+      return {
+        ...user._doc,
+        _id: user.id,
+        createdEvents: events.bind(this, user._doc.createdEvents)
+      };
+    })
+    .catch(err => {
+      throw err;
+    });
+};
 
 app.get("/", (req, res, next) => {
   res.send("Hello world!");
@@ -29,12 +54,14 @@ app.use(
         description:String!
         price: Float!
         date: String!
+        creator:User!
     }  
 
     type User{
         _id:ID!
         email:String!
         password:String
+        createdEvents:[Event!]
     }
 
     input UserInput{
@@ -66,9 +93,15 @@ app.use(
     rootValue: {
       events: () => {
         return Event.find()
-          .then(res => {
-            console.log(res);
-            return res;
+          .populate("creator")
+          .then(events => {
+            return events.map(event => {
+              return {
+                _id: event.id,
+                ...event._doc,
+                creator: user.bind(this, event._doc.creator)
+              };
+            });
           })
           .catch(err => {
             console.log(err);
@@ -80,12 +113,29 @@ app.use(
           title: args.eventInput.title,
           description: args.eventInput.description,
           price: +args.eventInput.price,
-          date: new Date().toISOString()
+          date: new Date().toISOString(),
+          creator: "5e041c26a8aa969b34d7c37a"
         });
+        let createdEvent;
         return event
           .save()
-          .then(res => {
-            return { ...res._doc };
+          .then(result => {
+            createdEvent = {
+              ...result._doc,
+              creator: user.bind(this, result._doc.creator)
+            };
+            return User.findById("5e041c26a8aa969b34d7c37a");
+          })
+          .then(user => {
+            if (!user) {
+              throw new Error("User  not found");
+            }
+
+            user.createdEvents.push(event);
+            return user.save();
+          })
+          .then(result => {
+            return createdEvent;
           })
           .catch(err => {
             throw err;
@@ -103,7 +153,7 @@ app.use(
             return user
               .save()
               .then(result => {
-                return { ...result._doc };
+                return { ...result._doc, password: null };
               })
               .catch(err => {
                 throw err;
