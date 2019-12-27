@@ -89,10 +89,12 @@ module.exports = {
       const bookingObject = await Booking.findById(args.bookingId).populate(
         "event"
       );
+      console.log(`Booking evt attached ${bookingObject.event}`);
       const event = {
-        ...bookingObject.event,
-        creator: user.bind(this, bookingObject.creator)
+        ...bookingObject.event._doc,
+        creator: user.bind(this, bookingObject.event._doc.creator)
       };
+
       const deleteBookingResponse = await Booking.deleteOne({
         _id: args.bookingId
       });
