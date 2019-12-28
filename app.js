@@ -4,6 +4,7 @@ const graphQLHttp = require("express-graphql");
 const mongoose = require("mongoose");
 const graphQLSchema = require("./graphql/schema/index");
 const graphQLResolver = require("./graphql/resolver/index");
+const isAuth = require("./middleware/is-auth");
 const app = express();
 const PORT = 3000;
 const dev_db_url =
@@ -11,6 +12,8 @@ const dev_db_url =
 //const events = [];
 
 app.use(bodyParser.json());
+
+app.use(isAuth);
 
 app.get("/", (req, res, next) => {
   res.send("Hello world!");

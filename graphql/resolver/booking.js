@@ -14,7 +14,10 @@ module.exports = {
       throw error;
     }
   },
-  bookEvent: async args => {
+  bookEvent: async (args, req) => {
+    if (!req.isAuth) {
+      throw new Error("403 User unauthenticated!");
+    }
     const fetchedEvent = await Event.findOne({ _id: args.eventId });
     const booking = new Booking({
       user: TEMP_USER_ID,
@@ -23,7 +26,10 @@ module.exports = {
     const result = await booking.save();
     return transformBooking(result);
   },
-  cancelBooking: async args => {
+  cancelBooking: async (args, req) => {
+    if (!req.isAuth) {
+      throw new Error("403 User unauthenticated!");
+    }
     try {
       const bookingObject = await Booking.findById(args.bookingId).populate(
         "event"

@@ -16,7 +16,9 @@ const singleEvent = async eventId => {
   try {
     const eventObject = await Event.findById(eventId);
     return transformEvent(eventObject);
-  } catch (error) {}
+  } catch (error) {
+    throw error;
+  }
 };
 
 const user = async userId => {
