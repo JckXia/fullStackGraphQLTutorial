@@ -3,16 +3,20 @@ const Event = require("../../models/event");
 const User = require("../../models/user");
 const Booking = require("../../models/booking");
 const TEMP_USER_ID = "5e0660153f2c9239e44106d7";
+
+const transformEvent = event => {
+  return {
+    ...event._doc,
+    _id: event.id,
+    creator: user.bind(this, event.creator)
+  };
+};
+
 const events = async eventIds => {
-  console.log(`INFO--- Event IDS ${eventIds}`);
   try {
     const events = await Event.find({ _id: { $in: eventIds } });
     return events.map(event => {
-      return {
-        ...event._doc,
-        _id: event.id,
-        creator: user.bind(this, event.creator)
-      };
+      return transformEvent(event);
     });
   } catch (err) {
     throw err;
@@ -22,10 +26,7 @@ const events = async eventIds => {
 const singleEvent = async eventId => {
   try {
     const eventObject = await Event.findById(eventId);
-    return {
-      ...eventObject._doc,
-      creator: user.bind(this, eventObject.creator)
-    };
+    return transformEvent(eventObject);
   } catch (error) {}
 };
 
@@ -45,11 +46,7 @@ module.exports = {
   events: async () => {
     const eventsObject = await Event.find();
     return eventsObject.map(event => {
-      return {
-        _id: event.id,
-        ...event._doc,
-        creator: user.bind(this, event._doc.creator)
-      };
+      return transformEvent(event);
     });
   },
   bookings: async () => {
@@ -89,12 +86,8 @@ module.exports = {
       const bookingObject = await Booking.findById(args.bookingId).populate(
         "event"
       );
-      console.log(`Booking evt attached ${bookingObject.event}`);
-      const event = {
-        ...bookingObject.event._doc,
-        creator: user.bind(this, bookingObject.event._doc.creator)
-      };
 
+      const event = transformEvent(bookingObject.event);
       const deleteBookingResponse = await Booking.deleteOne({
         _id: args.bookingId
       });
@@ -117,13 +110,8 @@ module.exports = {
         throw new Error("403 User not found!");
       }
 
-      let createdEvent;
       let eventCreationObject = await event.save();
-      eventCreationObject = {
-        ...eventCreationObject._doc,
-        creator: user.bind(this, eventCreationObject._doc.creator)
-      };
-
+      eventCreationObject = transformEvent(eventCreationObject);
       userObject.createdEvents.push(event);
       userObject.save();
       return eventCreationObject;
