@@ -3,12 +3,23 @@ const Event = require("../../models/event");
 const User = require("../../models/user");
 const Booking = require("../../models/booking");
 const TEMP_USER_ID = "5e0660153f2c9239e44106d7";
+const { dateToString } = require("../../helper/date");
 
 const transformEvent = event => {
   return {
     ...event._doc,
     _id: event.id,
     creator: user.bind(this, event.creator)
+  };
+};
+
+const transformBooking = bookingObject => {
+  return {
+    ...bookingObject._doc,
+    user: user.bind(this, bookingObject._doc.user),
+    event: singleEvent.bind(this, bookingObject._doc.event._id),
+    createdAt: dateToString(bookingObject._doc.createdAt),
+    updatedAt: dateToString(bookingObject._doc.updatedAt)
   };
 };
 
@@ -53,13 +64,7 @@ module.exports = {
     try {
       const bookingObjects = await Booking.find();
       return bookingObjects.map(bookingObject => {
-        return {
-          ...bookingObject._doc,
-          user: user.bind(this, bookingObject._doc.user),
-          event: singleEvent.bind(this, bookingObject._doc.event._id),
-          createdAt: new Date(bookingObject._doc.createdAt).toISOString(),
-          updatedAt: new Date(bookingObject._doc.updatedAt).toISOString()
-        };
+        return transformBooking(bookingObject);
       });
     } catch (error) {
       throw error;
@@ -72,14 +77,7 @@ module.exports = {
       event: fetchedEvent
     });
     const result = await booking.save();
-    return {
-      ...result._doc,
-      _id: result.id,
-      user: user.bind(this, booking._doc.user),
-      event: singleEvent.bind(this, booking._doc.event),
-      createdAt: new Date(result._doc.createdAt).toISOString(),
-      updatedAt: new Date(result._doc.updatedAt).toISOString()
-    };
+    return transformBooking(result);
   },
   cancelBooking: async args => {
     try {
