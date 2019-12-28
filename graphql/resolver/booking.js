@@ -1,26 +1,7 @@
 const Booking = require("../../models/booking");
 const Event = require("../../models/event");
 const TEMP_USER_ID = "5e0660153f2c9239e44106d7";
-const { user, singleEvent } = require("./merge");
-const { dateToString } = require("../../helper/date");
-
-const transformEvent = event => {
-  return {
-    ...event._doc,
-    _id: event.id,
-    creator: user.bind(this, event.creator)
-  };
-};
-
-const transformBooking = bookingObject => {
-  return {
-    ...bookingObject._doc,
-    user: user.bind(this, bookingObject._doc.user),
-    event: singleEvent.bind(this, bookingObject._doc.event._id),
-    createdAt: dateToString(bookingObject._doc.createdAt),
-    updatedAt: dateToString(bookingObject._doc.updatedAt)
-  };
-};
+const { transformBooking, transformEvent } = require("./merge");
 
 module.exports = {
   bookings: async () => {
