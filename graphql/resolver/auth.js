@@ -6,6 +6,7 @@ module.exports = {
   createUser: async args => {
     try {
       const hashedPassword = await bcrypt.hash(args.userInput.password, 12);
+
       const checkExistingUserObject = await User.findOne({
         email: args.userInput.email
       });
@@ -18,7 +19,7 @@ module.exports = {
       });
 
       const saveNewUserObject = await newUserObject.save();
-      console.log(saveNewUserObject);
+
       return { ...saveNewUserObject._doc, password: null };
     } catch (err) {
       throw err;
@@ -30,6 +31,7 @@ module.exports = {
       throw new Error("403! User does not exist!");
     }
     const isEqual = await bcrypt.compare(password, user.password);
+
     if (!isEqual) {
       throw new Error("400! Password is incorrect");
     }

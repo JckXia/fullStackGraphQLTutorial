@@ -19,13 +19,23 @@ class AuthPage extends Component {
   submitHandler = event => {
     event.preventDefault();
     const email = this.emailEl.current.value;
-    const password = this.emailEl.current.value;
+    const password = this.passwordEl.current.value;
     if (email.trim().length === 0 || password.trim().length === 0) {
       return;
     }
-    console.log(email, password);
-    const requestBody = {
+
+    let requestBody = {
       query: `
+      query {
+        login(email: "${email}", password: "${password}") {
+          token
+        }
+      }
+      `
+    };
+    if (!this.state.isLogin) {
+      requestBody = {
+        query: `
         mutation{
             createUser(userInput:{email:"${email}",password:"${password}"}){
               _id
@@ -33,7 +43,9 @@ class AuthPage extends Component {
             }
           }
         `
-    };
+      };
+    }
+
     fetch("http://localhost:8080/graphql", {
       method: "POST",
       body: JSON.stringify(requestBody),
@@ -49,6 +61,7 @@ class AuthPage extends Component {
       })
       .then(resData => {
         console.log(resData);
+        alert("Success!");
       })
       .catch(err => {
         console.log(err);
