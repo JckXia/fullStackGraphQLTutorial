@@ -1,11 +1,20 @@
 import React, { Component } from "react";
 
 class AuthPage extends Component {
+  state = {
+    isLogin: true
+  };
   constructor(props) {
     super(props);
     this.emailEl = React.createRef();
     this.passwordEl = React.createRef();
   }
+
+  switchModeHandler = () => {
+    this.setState(prevState => {
+      return { isLogin: !prevState.isLogin };
+    });
+  };
 
   submitHandler = event => {
     event.preventDefault();
@@ -61,7 +70,9 @@ class AuthPage extends Component {
           <input type="password" id="password" ref={this.passwordEl} />
         </div>
         <div className="form-actions">
-          <button type="button">Switch to signup</button>
+          <button type="button" onClick={this.switchModeHandler}>
+            Switch to {this.state.isLogin ? " SignUp " : " Login"}
+          </button>
           <button type="submit">Submit</button>
         </div>
       </form>
