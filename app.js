@@ -5,13 +5,16 @@ const mongoose = require("mongoose");
 const graphQLSchema = require("./graphql/schema/index");
 const graphQLResolver = require("./graphql/resolver/index");
 const isAuth = require("./middleware/is-auth");
+const cors = require("cors");
 const app = express();
-const PORT = 3000;
+const PORT = 8080;
 const dev_db_url =
   process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/graphQLProject";
 //const events = [];
 
 app.use(bodyParser.json());
+
+app.use(cors());
 
 app.use(isAuth);
 
